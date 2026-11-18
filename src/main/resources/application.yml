@@ -1,0 +1,152 @@
+spring:
+  application:
+    name: pos-receipt-whatsapp
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: 'false'
+
+  jpa:
+    generate-ddl: true
+    ddl-auto: create
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2048MB
+      max-request-size: 2048MB
+
+server:
+  port: '8079'
+
+logging:
+  level:
+    com:
+      pos:
+        receipt: DEBUG
+    org:
+      springframework:
+        web:
+          reactive: INFO
+
+whatsapp:
+  api:
+#    base-url: https://graph.facebook.com/v25.0
+    base-url: https://webhook.whatapi.in/webhook/69f98b7d20725fd599ec3829
+    payment-link-url: ${WHATSAPP_PAYMENT_LINK_WEBHOOK_URL}
+    payment-link-media-url: ${WHATSAPP_PAYMENT_LINK_MEDIA_URL}
+    phone-number-id: '1095137563681847'
+    access-token: ${WHATSAPP_ACCESS_TOKEN}
+    business-account-id: '945569721523597'
+    read-timeout-seconds: '30'
+    connect-timeout-seconds: '10'
+
+# ===================================================================
+# UPI PAYMENT CONFIGURATION
+# ===================================================================
+upi:
+  payment:
+    merchant-vpa: ${UPI_MERCHANT_VPA:7667673691@slc}
+    merchant-name: ${UPI_MERCHANT_NAME:INA POS Store}
+    merchant-id: ${UPI_MERCHANT_ID:MERCHANT001}
+    base-url: ${PAYMENT_BASE_URL:https://com.ina.spos.receipt.ngrok.dev}
+    timeout-seconds: ${PAYMENT_TIMEOUT_SECONDS:300} # 5 minutes timeout
+
+# ===================================================================
+# MAIL / IMAP CREDENTIALS (FOR CHECKING PAYMENT CONFIRMATION EMAILS)
+# Google Mail uses imap.gmail.com:993 with an App Password
+# ===================================================================
+mail:
+  reader:
+    host: ${MAIL_HOST:imap.gmail.com}
+    port: ${MAIL_PORT:993}
+    protocol: ${MAIL_PROTOCOL:imaps}
+    username: ${MAIL_USERNAME:anandh.pennagaram@gmail.com}
+    password: ${MAIL_PASSWORD}
+    folder: ${MAIL_FOLDER:INBOX}
+    ssl: ${MAIL_SSL:true}
+
+ina:
+  database:
+    username: postgres
+    password: admin
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/inapayments?currentSchema=ina_pos_receipt
+    poolName: INAMHHikariCP
+    maxPoolSize: 100
+    minimumIdle: 10
+    idleTimeout: 600000
+    maxLifetime: 1800000
+    connectionTimeout: 60000
+    leakDetectionThreshold: 10000
+    autoCommit: false
+    cachePrepStmts: true
+    prepStmtCacheSize: 1024
+    prepStmtCacheSqlLimit: 4096
+    useServerPrepStmts: true
+    housekeepingPeriodMs: 60000
+
+aws:
+  region: ap-south-1
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+s3:
+  bucket:
+    name: ina-payments-gtms-files
+
+# ===================================================================
+# CORS CONFIGURATION (FOR TMS WEB PORTAL ACCESS)
+# ===================================================================
+cors:
+  allowed-origins:
+    - ${PAYMENT_BASE_URL:https://com.ina.spos.receipt.ngrok.dev}
+    - http://localhost:8079
+    - http://localhost:3000
+    - http://localhost:4200
+    - http://localhost:5173
+    - http://localhost:8080
+    - http://127.0.0.1:8079
+    - http://127.0.0.1:3000
+    - http://127.0.0.1:4200
+    - http://127.0.0.1:5173
+    - http://127.0.0.1:8080
+    - https://tms-webportal.netlify.app
+  allowed-origin-patterns:
+    - https://*.ngrok.dev
+    - https://*.ngrok-free.app
+    - https://*.ngrok.io
+    - http://localhost:*
+    - http://127.0.0.1:*
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - PATCH
+    - OPTIONS
+  allowed-headers:
+    - Authorization
+    - Content-Type
+    - Accept
+    - Origin
+    - X-Requested-With
+    - Access-Control-Request-Method
+    - Access-Control-Request-Headers
+    - '*'
+  exposed-headers:
+    - Authorization
+    - Content-Disposition
+  allow-credentials: true
+  max-age: 3600
+
